@@ -174,14 +174,21 @@ class Webui_config:
 
 class Server_config:
     def __init__(
-        self, models: List[Dict[str, any]], port: int = 5000, device: str = "cuda"
+        self, speakers: Dict[str, any], models: List[Dict[str, any]], port: int = 5000, device: str = "cuda", model_root="Data"
     ):
         self.models: List[Dict[str, any]] = models  # 需要加载的所有模型的配置
+        self.speakers: speakers = speakers  # 需要加载的所有模型的配置
+        self.model_root: str = model_root  # 模型根目录
         self.port: int = port  # 端口号
         self.device: str = device  # 模型默认使用设备
 
     @classmethod
     def from_dict(cls, data: Dict[str, any]):
+        return cls(**data)
+    @classmethod
+    def change_config(cls, data_root: str, speaker: str, data: Dict[str, any]):
+        data["config_path"] = os.path.join(data_root,speaker, data["config"])
+        data["model"] = os.path.join(data_root, speaker, data["model"])
         return cls(**data)
 
 
