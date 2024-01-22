@@ -27,8 +27,13 @@ import librosa
 
 from flask import Flask, jsonify, request
 # 设置保存的文件路径和文件名
-# output_file_path = "C:\Users\hsx\projects\ai.com\Bert-VITS2\dist\temp.wav"
-output_file_path = "C:\\Users\\hsx\\projects\\ai.com\\Bert-VITS2\\dist\\temp.wav"
+# output_file_path = "/Users/xiangh/dawn/Bert-VITS2/dist/temp.wav"
+current_dir = os.path.dirname(os.path.realpath(__file__))
+dist_dir = os.path.join(current_dir, "dist")
+if not os.path.exists(dist_dir):
+    os.mkdir(dist_dir)
+output_file_path = os.path.join(dist_dir, "test.wav")
+
 net_g = None
 device = config.webui_config.device
 hps = None
@@ -382,7 +387,7 @@ def load_audio(path):
     # audio = librosa.resample(audio, 44100, 48000)
     return sr, audio
 
-def updateConfig(speaker: str = "Dinzheng"):
+def updateConfig(speaker: str = "Azusa"):
     global hps
     global net_g
     if hps is None:
@@ -415,4 +420,4 @@ if __name__ == "__main__":
         logger.info("Enable DEBUG-LEVEL log")
         logging.basicConfig(level=logging.DEBUG)
     updateConfig()
-    _flask.run(debug=True)
+    _flask.run(debug=True, port=config.server_config.port)
