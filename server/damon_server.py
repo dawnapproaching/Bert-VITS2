@@ -1,6 +1,10 @@
 # flake8: noqa: E402
 import os
 import logging
+
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import re_matching
 from tools.sentence import split_by_language
 
@@ -25,20 +29,26 @@ from tools.translate import translate
 from scipy.io import wavfile
 import librosa
 
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request, render_template
+from flask_cors import CORS
+from io import BytesIO
 # 设置保存的文件路径和文件名
-# output_file_path = "/Users/xiangh/dawn/Bert-VITS2/dist/temp.wav"
-current_dir = os.path.dirname(os.path.realpath(__file__))
-dist_dir = os.path.join(current_dir, "dist")
-if not os.path.exists(dist_dir):
-    os.mkdir(dist_dir)
-output_file_path = os.path.join(dist_dir, "test.wav")
+# current_dir = os.path.dirname(os.path.realpath(__file__))
+# dist_dir = os.path.join(current_dir, "dist")
+# if not os.path.exists(dist_dir):
+#     os.mkdir(dist_dir)
+# output_file_path = os.path.join(dist_dir, "audio.wav")
 
 net_g = None
 device = config.webui_config.device
 hps = None
 
 _flask = Flask(__name__)
+CORS(_flask, origins="*")
+
+@_flask.route("/")
+def index():
+    return render_template("index.html")
 # 定义一个简单的RESTful接口
 @_flask.route('/api/ai/audio/tts', methods=['POST'])
 def tts():
@@ -50,11 +60,18 @@ def tts():
 
     updateConfig(speaker)
     audio_concat = tts_fn(text, speaker, 0.5, 0.6, 0.9, 1, 'ZH', None, 'Happy', 'Text', 'prompt',  0.7)
-    # 通过音频输出的data属性获取音频数据
-
+    
+    wav_data_stream = BytesIO()
     # 将音频数据保存为 WAV 文件
-    wavfile.write(output_file_path, 44100, audio_concat)
-    return jsonify(message="Hello, welcome to the RESTful API1!")
+    wavfile.write(wav_data_stream, 44100, audio_concat)
+    # 将 WAV 文件数据读取为二进制数据流
+    wav_data = wav_data_stream.getvalue()
+    wav_data_stream.close()
+    headers = {
+        'Content-Type': 'audio/wav',
+        'Content-Disposition': 'inline;filename=audio.wav'
+    }
+    return Response(wav_data, headers=headers)
 
 if device == "mps":
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -415,9 +432,12 @@ def updateConfig(speaker: str = "Azusa"):
             model_path=model_path, version=version, device=device, hps=hps
         )
 
-if __name__ == "__main__":
+def boot():
     if config.webui_config.debug:
         logger.info("Enable DEBUG-LEVEL log")
         logging.basicConfig(level=logging.DEBUG)
     updateConfig()
+
+if __name__ == "__main__":
+    boot()
     _flask.run(debug=True, port=config.server_config.port)

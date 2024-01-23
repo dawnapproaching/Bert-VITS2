@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Player</title>
+</head>
+
+<body>
+    <audio controls id="audioPlayer">
+        <source src="" type="audio/wav" id="audioSource">
+    </audio>
+    <script>
+        // 获取音频数据的 URL
+        const audioUrl = 'http://localhost:5001/api/ai/audio/tts';
+
+        // 获取音频元素
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioSource = document.getElementById('audioSource');
+
+        // 使用 Fetch API 获取音频数据
+        console.log("start fetch: ", audioUrl);
+        fetch(audioUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    query: '你好，我是您的爹，很高兴为您服务。',
+                    assistant_id: "123",
+                    speaker: "Azusa"
+                })
+            })
+            .then(response => response.arrayBuffer())
+            .then(data => {
+                // 将二进制数据转换为 Blob 对象
+                const blob = new Blob([data], {
+                    type: 'audio/wav'
+                });
+
+                // 生成 Blob 对象的 URL
+                const blobUrl = URL.createObjectURL(blob);
+
+                // 设置音频元素的源
+                audioSource.src = blobUrl;
+                console.log("blobUrl", blobUrl);
+
+
+                // // 加载并播放音频
+                audioPlayer.load();
+                audioPlayer.play();
+            })
+            .catch(error => console.error('Error fetching audio:', error));
+    </script>
+</body>
+
+</html>
