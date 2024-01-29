@@ -59,7 +59,7 @@ def tts():
     speaker = data.get("speaker")
 
     updateConfig(speaker)
-    audio_concat = tts_fn(text, speaker, 0.5, 0.6, 0.9, 1, 'ZH', None, 'Happy', 'Text', 'prompt',  0.7)
+    audio_concat = tts_fn(text, speaker, 0.5, 0.6, 0.9, 1, 'auto', None, 'Happy', 'Text', 'prompt',  0.7)
     
     wav_data_stream = BytesIO()
     # 将音频数据保存为 WAV 文件
